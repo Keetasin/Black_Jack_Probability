@@ -2,6 +2,7 @@
 import cv2
 import os
 import numpy as np
+import matplotlib.pyplot as plt  # เพิ่มการแสดงผลทีละภาพ
 
 ### Constants ###
 # Debugging
@@ -9,14 +10,11 @@ DEBUG_MODE = False
 WRITE_IMAGES = False
 
 # Card dimensions
-CARD_MAX_AREA = 50000
-CARD_MIN_AREA = 2000
+CARD_MAX_AREA = 1000000
+CARD_MIN_AREA = 60000
 
 CARD_MAX_PERIM = 1000
 CARD_MIN_PERIM = 200
-
-CORNER_HEIGHT = 80
-CORNER_WIDTH = 50
 
 RANK_HEIGHT = 125
 RANK_WIDTH = 70
@@ -56,21 +54,36 @@ class Card:
         self.rank_score = 0  # Difference between rank image and best matched train rank image
         self.value = 0  # Numerical value of the rank
 
+ 
+
     def process_card(self, image):
         """Process and flatten the card image to extract rank."""
         x, y, w, h = cv2.boundingRect(self.contour)
         self.center = np.mean(self.corner_pts, axis=0).astype(int).tolist()[0]
 
+        # Step 1: Flatten the card to a top-down view
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         self.img = flattener(gray, self.corner_pts, w, h)
 
-        rank_img = self.img[5:CORNER_HEIGHT, 5:CORNER_WIDTH]
+        # Display the flattened card
+        # plt.imshow(self.img, cmap='gray')
+        # plt.title("Top-Down View of Card")
+        # plt.show()
+
+        # Step 2: Crop the top-left corner
+        rank_img = self.img[0:55 , 0:35]         # cropppp
         pad_value = np.median(rank_img)
         rank_img_padded = np.pad(rank_img, 5, 'constant', constant_values=pad_value)
 
         _, thresh = cv2.threshold(rank_img_padded, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         thresh = cv2.bitwise_not(thresh)
 
+        # Display the cropped and thresholded top-left corner
+        # plt.imshow(thresh, cmap='gray')
+        # plt.title("Cropped Top-Left Corner for Rank")
+        # plt.show()
+
+        # Step 3: Extract rank contour
         contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
@@ -79,8 +92,12 @@ class Card:
             x1, y1, w1, h1 = cv2.boundingRect(contours[0])
             rank_crop = thresh[y1:y1 + h1, x1:x1 + w1]
             self.rank_img = cv2.resize(rank_crop, (RANK_WIDTH, RANK_HEIGHT))
-            if self.rank_img is None:
-                print(f"Error: Rank image is None after processing card.")
+
+            # Display the final rank image for matching
+            # plt.imshow(self.rank_img, cmap='gray')
+            # plt.title("Final Rank Image for Matching")
+            # plt.show()
+
 
 
     def match_rank(self, all_ranks, match_method, last_cards):
@@ -91,7 +108,6 @@ class Card:
         else:
             print("Error: Rank image is not a NumPy array.")
             return  # Add a return statement to prevent further processing
-
 
         # Match the rank using templates or HU moments
         match_scores = []
@@ -124,9 +140,6 @@ class Card:
                     self.best_rank_match = last_card.best_rank_match
                     self.value = last_card.value
 
-
-
-
 def detect(image, rank_path, last_cards):
     """Detects cards in an image and returns a list of processed card objects."""
     ranks = load_ranks(rank_path)
@@ -138,12 +151,24 @@ def detect(image, rank_path, last_cards):
     return cards
 
 def display(image, cards):
-    """Draw detected cards with their best rank matches on the image."""
+    """Draw detected cards with their best rank matches and corner points on the image."""
     for card in cards:
+        # Draw the main card contour
         color = (0, 255, 0) if card.best_rank_match != "Unknown" else (0, 0, 255)
         cv2.drawContours(image, [card.contour], 0, color, 2)
+        
+        # Draw the corner points
+        for pt in card.corner_pts:
+            cv2.circle(image, tuple(pt[0]), 5, (255, 0, 0), -1)
+
+        # Draw the bounding box
+        x, y, w, h = cv2.boundingRect(card.contour)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
+
+        # Display the card rank
         text_pos = (card.center[0] - 20, card.center[1])
         cv2.putText(image, card.best_rank_match, text_pos, cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
     return image
 
 def find_cards(image):
@@ -196,9 +221,26 @@ def flattener(image, pts, w, h):
     M = cv2.getPerspectiveTransform(rect, dst)
     return cv2.warpPerspective(image, M, (CARD_WIDTH, CARD_HEIGHT))
 
+def is_card_inside_rect(card, rect):
+    """ตรวจสอบว่าไพ่ตั้งอยู่ภายในกรอบสี่เหลี่ยมหรือไม่"""
+    x1, y1, x2, y2 = rect  # (top-left-x, top-left-y, bottom-right-x, bottom-right-y)
+    cx, cy = card.center  # ศูนย์กลางของไพ่
+    return x1 <= cx <= x2 and y1 <= cy <= y2
+
+
+def calculate_total_value(cards):
+    """Calculate the total value of all detected cards."""
+    total_value = sum(card.value for card in cards if card.value > 0)
+    return total_value
+
+
 def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
     # Ensure output directory exists
     os.makedirs(output_folder, exist_ok=True)
+
+    # Define rectangle for filtering (x1, y1, x2, y2)
+    filter_rect_player = (500,600, 1500, 1100)  # กรอบสำหรับผู้เล่น
+    filter_rect_dealer = (500,50, 1500, 520)  # กรอบสำหรับดีลเลอร์
 
     # Loop through all images in the input folder
     for image_filename in os.listdir(input_folder):
@@ -210,9 +252,28 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
             print(f"Error: Cannot read image from {image_path}")
             continue
 
-
         # Detect cards in the image
         cards = detect(image, rank_path, last_cards)
+
+        # Filter cards inside the rectangle
+        filtered_cards_players = [card for card in cards if is_card_inside_rect(card, filter_rect_player)]
+        filtered_cards_dealer = [card for card in cards if is_card_inside_rect(card, filter_rect_dealer)]
+
+        # Calculate total value of filtered cards
+        total_value_players = calculate_total_value(filtered_cards_players)
+        total_value_dealer = calculate_total_value(filtered_cards_dealer)
+
+        # Display the rectangle on the image
+        cv2.rectangle(image, (filter_rect_player[0], filter_rect_player[1]), (filter_rect_player[2], filter_rect_player[3]), (255, 0, 0), 2)
+        cv2.rectangle(image, (filter_rect_dealer[0], filter_rect_dealer[1]), (filter_rect_dealer[2], filter_rect_dealer[3]), (255, 0, 0), 2)
+
+        # Add text showing total value of cards in each rectangle
+        cv2.putText(image, f"Player: {total_value_players}", 
+                    (filter_rect_player[0], filter_rect_player[1] - 10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(image, f"Dealer: {total_value_dealer}", 
+                    (filter_rect_dealer[0], filter_rect_dealer[1] - 10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Display the image with detected cards
         result_image = display(image, cards)
@@ -220,11 +281,19 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         # Save the result in the output folder
         output_path = os.path.join(output_folder, image_filename)
         cv2.imwrite(output_path, result_image)
-
+        print('*' * 10)
+        print(image_filename)
+        print(f"players: {total_value_players}")
+        print(f"dealer: {total_value_dealer}")
+        print([card.value for card in filtered_cards_players])
+        print([card.value for card in filtered_cards_dealer])
         print(f"Processed: {image_filename}")
 
+
 if __name__ == "__main__":
-    input_folder = 'test_img'
-    output_folder = 'test_img/detected_cards'
-    rank_path = 'rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
+    input_folder = 'images'
+    output_folder = 'images/detected'
+    rank_path = 'template'  # Directory containing rank images (Ace.png, Two.png, etc.)
     process_folder(input_folder, output_folder, rank_path)
+
+
