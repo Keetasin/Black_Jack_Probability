@@ -9,7 +9,7 @@ DEBUG_MODE = False
 WRITE_IMAGES = False
 
 # Card dimensions
-CARD_MAX_AREA = 50000
+CARD_MAX_AREA = 34500
 CARD_MIN_AREA = 2000
 
 CARD_MAX_PERIM = 1000
@@ -30,7 +30,7 @@ POLY_ACC_CONST = 0.02
 # Matching algorithms
 HU_MOMENTS = 0
 TEMPLATE_MATCHING = 1
-MAX_MATCH_SCORE = 2200
+MAX_MATCH_SCORE = 2700
 
 ### Structures ###
 class Rank:
@@ -79,6 +79,9 @@ class Card:
             x1, y1, w1, h1 = cv2.boundingRect(contours[0])
             rank_crop = thresh[y1:y1 + h1, x1:x1 + w1]
             self.rank_img = cv2.resize(rank_crop, (RANK_WIDTH, RANK_HEIGHT))
+            if self.rank_img is None:
+                print(f"Error: Rank image is None after processing card.")
+
 
     def match_rank(self, all_ranks, match_method, last_cards):
         # Ensure the rank image is in grayscale format
@@ -86,7 +89,9 @@ class Card:
             if len(self.rank_img.shape) == 3:  # If image is BGR
                 self.rank_img = cv2.cvtColor(self.rank_img, cv2.COLOR_BGR2GRAY)
         else:
-            raise ValueError("Rank image must be a NumPy array.")
+            print("Error: Rank image is not a NumPy array.")
+            return  # Add a return statement to prevent further processing
+
 
         # Match the rank using templates or HU moments
         match_scores = []
@@ -169,12 +174,15 @@ def load_ranks(path):
 
     for i, name in enumerate(rank_names):
         img_path = os.path.join(path, f"{name}.png")
-        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # Ensure grayscale loading
-        if img is not None:
-            contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            contours = sorted(contours, key=cv2.contourArea, reverse=True)
-            ranks.append(Rank(name, img, contours[0], rank_values[i]))
+        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            print(f"Error loading rank image: {img_path}")  # Ensure grayscale loading
+            continue  # Skip if the image is not found
+        contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        ranks.append(Rank(name, img, contours[0], rank_values[i]))
     return ranks
+
 
 def flattener(image, pts, w, h):
     """Flattens an image of a card into a top-down 200x300 perspective."""
@@ -198,6 +206,10 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
 
         # Read the input image
         image = cv2.imread(image_path)
+        if image is None:
+            print(f"Error: Cannot read image from {image_path}")
+            continue
+
 
         # Detect cards in the image
         cards = detect(image, rank_path, last_cards)
@@ -212,7 +224,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         print(f"Processed: {image_filename}")
 
 if __name__ == "__main__":
-    input_folder = 'benchmark_images'
-    output_folder = 'benchmark_images/detected_cards'
-    rank_path = 'rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
+    input_folder = 'D:\\Black_Jack_Probability\\Black_Jack_Probability\\benchmark_images'
+    output_folder = 'D:\\Black_Jack_Probability\\Black_Jack_Probability\\benchmark_images\\detected_cards'
+    rank_path = 'D:\\Black_Jack_Probability\\Black_Jack_Probability\\rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
     process_folder(input_folder, output_folder, rank_path)
