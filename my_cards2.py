@@ -10,7 +10,7 @@ DEBUG_MODE = False
 WRITE_IMAGES = False
 
 # Card dimensions
-CARD_MAX_AREA = 50000
+CARD_MAX_AREA = 100000
 CARD_MIN_AREA = 2000
 
 CARD_MAX_PERIM = 1000
@@ -94,9 +94,9 @@ class Card:
             self.rank_img = cv2.resize(rank_crop, (RANK_WIDTH, RANK_HEIGHT))
 
             # Display the final rank image for matching
-            plt.imshow(self.rank_img, cmap='gray')
-            plt.title("Final Rank Image for Matching")
-            plt.show()
+            # plt.imshow(self.rank_img, cmap='gray')
+            # plt.title("Final Rank Image for Matching")
+            # plt.show()
 
 
 
@@ -221,6 +221,12 @@ def flattener(image, pts, w, h):
     M = cv2.getPerspectiveTransform(rect, dst)
     return cv2.warpPerspective(image, M, (CARD_WIDTH, CARD_HEIGHT))
 
+def calculate_total_value(cards):
+    """Calculate the total value of all detected cards."""
+    total_value = sum(card.value for card in cards if card.value > 0)
+    return total_value
+
+
 def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
     # Ensure output directory exists
     os.makedirs(output_folder, exist_ok=True)
@@ -235,9 +241,13 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
             print(f"Error: Cannot read image from {image_path}")
             continue
 
-
         # Detect cards in the image
         cards = detect(image, rank_path, last_cards)
+
+        # Calculate total value of detected cards
+        total_value = calculate_total_value(cards)
+        print('*'*10)
+        print(f"Total value of cards in {image_filename}: {total_value}")
 
         # Display the image with detected cards
         result_image = display(image, cards)
@@ -245,7 +255,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         # Save the result in the output folder
         output_path = os.path.join(output_folder, image_filename)
         cv2.imwrite(output_path, result_image)
-
+        print([card.value for card in cards])
         print(f"Processed: {image_filename}")
 
 if __name__ == "__main__":
