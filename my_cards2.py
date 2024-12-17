@@ -16,9 +16,6 @@ CARD_MIN_AREA = 2000
 CARD_MAX_PERIM = 1000
 CARD_MIN_PERIM = 200
 
-CORNER_HEIGHT = 80
-CORNER_WIDTH = 50
-
 RANK_HEIGHT = 125
 RANK_WIDTH = 70
 
@@ -69,12 +66,12 @@ class Card:
         self.img = flattener(gray, self.corner_pts, w, h)
 
         # Display the flattened card
-        plt.imshow(self.img, cmap='gray')
-        plt.title("Top-Down View of Card")
-        plt.show()
+        # plt.imshow(self.img, cmap='gray')
+        # plt.title("Top-Down View of Card")
+        # plt.show()
 
         # Step 2: Crop the top-left corner
-        rank_img = self.img[5:CORNER_HEIGHT, 5:CORNER_WIDTH]
+        rank_img = self.img[0:55 , 0:35]         # cropppp
         pad_value = np.median(rank_img)
         rank_img_padded = np.pad(rank_img, 5, 'constant', constant_values=pad_value)
 
@@ -82,9 +79,9 @@ class Card:
         thresh = cv2.bitwise_not(thresh)
 
         # Display the cropped and thresholded top-left corner
-        plt.imshow(thresh, cmap='gray')
-        plt.title("Cropped Top-Left Corner for Rank")
-        plt.show()
+        # plt.imshow(thresh, cmap='gray')
+        # plt.title("Cropped Top-Left Corner for Rank")
+        # plt.show()
 
         # Step 3: Extract rank contour
         contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -252,7 +249,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         print(f"Processed: {image_filename}")
 
 if __name__ == "__main__":
-    input_folder = 'benchmark_images'
-    output_folder = 'benchmark_images/detected_cards'
+    input_folder = 'test_img'
+    output_folder = 'test_img/detected_cards'
     rank_path = 'rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
     process_folder(input_folder, output_folder, rank_path)
