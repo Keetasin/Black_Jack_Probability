@@ -221,6 +221,13 @@ def flattener(image, pts, w, h):
     M = cv2.getPerspectiveTransform(rect, dst)
     return cv2.warpPerspective(image, M, (CARD_WIDTH, CARD_HEIGHT))
 
+def is_card_inside_rect(card, rect):
+    """ตรวจสอบว่าไพ่ตั้งอยู่ภายในกรอบสี่เหลี่ยมหรือไม่"""
+    x1, y1, x2, y2 = rect  # (top-left-x, top-left-y, bottom-right-x, bottom-right-y)
+    cx, cy = card.center  # ศูนย์กลางของไพ่
+    return x1 <= cx <= x2 and y1 <= cy <= y2
+
+
 def calculate_total_value(cards):
     """Calculate the total value of all detected cards."""
     total_value = sum(card.value for card in cards if card.value > 0)
@@ -230,6 +237,10 @@ def calculate_total_value(cards):
 def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
     # Ensure output directory exists
     os.makedirs(output_folder, exist_ok=True)
+
+    # Define rectangle for filtering (x1, y1, x2, y2)
+    filter_rect_player = (700, 550, 1400, 1000)  # กรอบสำหรับผู้เล่น
+    filter_rect_dealer = (700, 120, 1400, 520)  # กรอบสำหรับดีลเลอร์
 
     # Loop through all images in the input folder
     for image_filename in os.listdir(input_folder):
@@ -244,10 +255,25 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         # Detect cards in the image
         cards = detect(image, rank_path, last_cards)
 
-        # Calculate total value of detected cards
-        total_value = calculate_total_value(cards)
-        print('*'*10)
-        print(f"Total value of cards in {image_filename}: {total_value}")
+        # Filter cards inside the rectangle
+        filtered_cards_players = [card for card in cards if is_card_inside_rect(card, filter_rect_player)]
+        filtered_cards_dealer = [card for card in cards if is_card_inside_rect(card, filter_rect_dealer)]
+
+        # Calculate total value of filtered cards
+        total_value_players = calculate_total_value(filtered_cards_players)
+        total_value_dealer = calculate_total_value(filtered_cards_dealer)
+
+        # Display the rectangle on the image
+        cv2.rectangle(image, (filter_rect_player[0], filter_rect_player[1]), (filter_rect_player[2], filter_rect_player[3]), (255, 0, 0), 2)
+        cv2.rectangle(image, (filter_rect_dealer[0], filter_rect_dealer[1]), (filter_rect_dealer[2], filter_rect_dealer[3]), (255, 0, 0), 2)
+
+        # Add text showing total value of cards in each rectangle
+        cv2.putText(image, f"Player: {total_value_players}", 
+                    (filter_rect_player[0], filter_rect_player[1] - 10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(image, f"Dealer: {total_value_dealer}", 
+                    (filter_rect_dealer[0], filter_rect_dealer[1] - 10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         # Display the image with detected cards
         result_image = display(image, cards)
@@ -255,8 +281,14 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         # Save the result in the output folder
         output_path = os.path.join(output_folder, image_filename)
         cv2.imwrite(output_path, result_image)
-        print([card.value for card in cards])
+        print('*' * 10)
+        print(image_filename)
+        print(f"players: {total_value_players}")
+        print(f"dealer: {total_value_dealer}")
+        print([card.value for card in filtered_cards_players])
+        print([card.value for card in filtered_cards_dealer])
         print(f"Processed: {image_filename}")
+
 
 if __name__ == "__main__":
     input_folder = 'test_img'
