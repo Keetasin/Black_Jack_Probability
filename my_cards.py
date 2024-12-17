@@ -224,7 +224,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         print(f"Processed: {image_filename}")
 
 if __name__ == "__main__":
-    input_folder = 'benchmark_images'
-    output_folder = 'benchmark_images/detected_cards'
+    input_folder = 'test_img'
+    output_folder = 'test_img/detected_cards'
     rank_path = 'rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
     process_folder(input_folder, output_folder, rank_path)
