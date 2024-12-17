@@ -9,7 +9,7 @@ DEBUG_MODE = False
 WRITE_IMAGES = False
 
 # Card dimensions
-CARD_MAX_AREA = 34500
+CARD_MAX_AREA = 50000
 CARD_MIN_AREA = 2000
 
 CARD_MAX_PERIM = 1000
@@ -224,7 +224,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         print(f"Processed: {image_filename}")
 
 if __name__ == "__main__":
-    input_folder = 'D:\\Black_Jack_Probability\\Black_Jack_Probability\\benchmark_images'
-    output_folder = 'D:\\Black_Jack_Probability\\Black_Jack_Probability\\benchmark_images\\detected_cards'
-    rank_path = 'D:\\Black_Jack_Probability\\Black_Jack_Probability\\rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
+    input_folder = 'benchmark_images'
+    output_folder = 'benchmark_images/detected_cards'
+    rank_path = 'rank_images'  # Directory containing rank images (Ace.png, Two.png, etc.)
     process_folder(input_folder, output_folder, rank_path)
