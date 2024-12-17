@@ -34,4 +34,4 @@ if __name__ == "__main__":
             print(f"{running_count} high cards left in the deck, dealer's chance of busting when drawing additional cards.")
         elif running_count < 0:
             print(f"{running_count} low cards left in the deck, increasing Blackjack or a high hand, reducing the dealer's chance of busting.")    
-        print("left card :", len(card))
+        print("left card :", len(deck))
