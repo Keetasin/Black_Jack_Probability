@@ -258,22 +258,41 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         # Filter cards inside the rectangle
         filtered_cards_players = [card for card in cards if is_card_inside_rect(card, filter_rect_player)]
         filtered_cards_dealer = [card for card in cards if is_card_inside_rect(card, filter_rect_dealer)]
-
+        
         # Calculate total value of filtered cards
         total_value_players = calculate_total_value(filtered_cards_players)
         total_value_dealer = calculate_total_value(filtered_cards_dealer)
 
-        # Display the rectangle on the image
-        cv2.rectangle(image, (filter_rect_player[0], filter_rect_player[1]), (filter_rect_player[2], filter_rect_player[3]), (255, 0, 0), 2)
-        cv2.rectangle(image, (filter_rect_dealer[0], filter_rect_dealer[1]), (filter_rect_dealer[2], filter_rect_dealer[3]), (255, 0, 0), 2)
+        if "round" in image_filename.lower():
+            # Display the rectangle on the image
+            cv2.rectangle(image, (filter_rect_player[0], filter_rect_player[1]), (filter_rect_player[2], filter_rect_player[3]), (255, 0, 0), 2)
+            cv2.rectangle(image, (filter_rect_dealer[0], filter_rect_dealer[1]), (filter_rect_dealer[2], filter_rect_dealer[3]), (255, 0, 0), 2)
 
-        # Add text showing total value of cards in each rectangle
-        cv2.putText(image, f"Player: {total_value_players}", 
-                    (filter_rect_player[0], filter_rect_player[1] - 10), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(image, f"Dealer: {total_value_dealer}", 
-                    (filter_rect_dealer[0], filter_rect_dealer[1] - 10), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # Add text showing total value of cards in each rectangle
+            cv2.putText(image, f"Player: {total_value_players}", 
+                        (filter_rect_player[0], filter_rect_player[1] - 10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(image, f"Dealer: {total_value_dealer}", 
+                        (filter_rect_dealer[0], filter_rect_dealer[1] - 10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        
+        if "post" in image_filename.lower():
+            if total_value_players > total_value_dealer:
+                cv2.putText(image, "Player Win", (600,600),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+            elif total_value_dealer > total_value_players:
+                cv2.putText(image, "Dealer Win", (600,600),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+            else:
+                cv2.putText(image, "Draw", (600,600),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+
+            if total_value_players == 21:
+                    cv2.putText(image, "Black Jack", (100,700),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+            if total_value_dealer == 21:
+                    cv2.putText(image, "Black Jack", (100,200),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+
+            if total_value_players > 21:
+                    cv2.putText(image, "Bust", (100,700),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+            if total_value_dealer > 21:
+                    cv2.putText(image, "Bust", (100,200),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
 
         # Display the image with detected cards
         result_image = display(image, cards)
