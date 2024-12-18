@@ -270,29 +270,29 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
 
             # Add text showing total value of cards in each rectangle
             cv2.putText(image, f"Player: {total_value_players}", 
-                        (filter_rect_player[0], filter_rect_player[1] - 10), 
+                        (filter_rect_player[2]-150, filter_rect_player[1] - 10), 
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             cv2.putText(image, f"Dealer: {total_value_dealer}", 
-                        (filter_rect_dealer[0], filter_rect_dealer[1] - 10), 
+                        (filter_rect_dealer[2]-150, filter_rect_dealer[1] - 10), 
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         
         if "post" in image_filename.lower():
-            if total_value_players > total_value_dealer:
-                cv2.putText(image, "Player Win", (600,600),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
-            elif total_value_dealer > total_value_players:
-                cv2.putText(image, "Dealer Win", (600,600),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
-            else:
-                cv2.putText(image, "Draw", (600,600),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+            if (total_value_dealer == total_value_players) or (total_value_players>21 and total_value_dealer>21):
+                cv2.putText(image, "Draw", (200,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+            elif ((total_value_players > total_value_dealer)and total_value_players < 22) or (total_value_dealer>21):
+                cv2.putText(image, "Player Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+            elif ((total_value_dealer > total_value_players)and total_value_dealer < 22) or (total_value_players>21):
+                cv2.putText(image, "Dealer Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
 
             if total_value_players == 21:
-                    cv2.putText(image, "Black Jack", (100,700),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+                    cv2.putText(image, "Black Jack", (10,900),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
             if total_value_dealer == 21:
-                    cv2.putText(image, "Black Jack", (100,200),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+                    cv2.putText(image, "Black Jack", (10,200),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
 
             if total_value_players > 21:
-                    cv2.putText(image, "Bust", (100,700),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+                    cv2.putText(image, "Bust", (10,900),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
             if total_value_dealer > 21:
-                    cv2.putText(image, "Bust", (100,200),cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 255), 10)
+                    cv2.putText(image, "Bust", (10,200),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
 
         # Display the image with detected cards
         result_image = display(image, cards)
