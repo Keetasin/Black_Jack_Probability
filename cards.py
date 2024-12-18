@@ -233,6 +233,52 @@ def calculate_total_value(cards):
     total_value = sum(card.value for card in cards if card.value > 0)
     return total_value
 
+def create_deck():
+    """สร้างสำรับไพ่ 1 สำรับในรูปแบบค่าตัวเลข"""
+    deck = []
+    for rank in range(2, 11):  # ไพ่เลข 2-10
+        deck.extend([rank] * 4)
+    deck.extend([10] * 12)  # ไพ่ J, Q, K มีค่าเท่ากับ 10 (12 ใบ)
+    deck.extend([11] * 4)   # ไพ่ A มีค่าเริ่มต้นเป็น 11 (4 ใบ)
+    return deck
+
+def calculate_total(hand):
+    """คำนวณแต้มรวมของไพ่ในมือ"""
+    total = sum(hand)
+    aces = hand.count(11)  # จำนวน A ที่มีค่า 11
+    while total > 21 and aces:
+        total -= 10  # ลดค่า A จาก 11 เป็น 1
+        aces -= 1
+    return total
+
+def calculate_bust_probability(hand, deck, stop_at=int()):
+    """
+    คำนวณความน่าจะเป็นที่ไพ่ในมือจะ bust
+    :param hand: ไพ่ในมือเป็นค่าตัวเลข (list)
+    :param deck: สำรับไพ่ที่เหลืออยู่
+    :param stop_at: แต้มที่หยุดจั่วไพ่ (default: 17)
+    :return: ความน่าจะเป็นที่ bust
+    """
+    total = calculate_total(hand)
+    
+    if total >= stop_at:
+        return 0.0  # ไม่จั่วไพ่เพิ่มเติม
+
+    # คำนวณความน่าจะเป็น bust หากยังไม่ bust และแต้มไม่ถึง stop_at
+    bust_count = 0
+    for card_value in deck:
+        if card_value == 11:  # ไพ่ Ace (มีค่าได้ทั้ง 11 และ 1)
+            new_total_with_11 = total + 11
+            new_total_with_1 = total + 1
+            if new_total_with_11 > 21 and new_total_with_1 > 21:
+                bust_count += 1
+        else:
+            new_total = total + card_value
+            if new_total > 21:
+                bust_count += 1
+
+    return bust_count / len(deck)
+
 
 def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
     # Ensure output directory exists
@@ -242,8 +288,13 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
     filter_rect_player = (500,600, 1500, 1100)  # กรอบสำหรับผู้เล่น
     filter_rect_dealer = (500,50, 1500, 520)  # กรอบสำหรับดีลเลอร์
 
+    # สร้างสำรับไพ่
+    deck = create_deck()
+
     # Loop through all images in the input folder
     for image_filename in os.listdir(input_folder):
+        print('*' * 10)
+        print(image_filename)
         image_path = os.path.join(input_folder, image_filename)
 
         # Read the input image
@@ -251,19 +302,23 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
         if image is None:
             print(f"Error: Cannot read image from {image_path}")
             continue
+        
 
         # Detect cards in the image
         cards = detect(image, rank_path, last_cards)
 
-        # Filter cards inside the rectangle
-        filtered_cards_players = [card for card in cards if is_card_inside_rect(card, filter_rect_player)]
-        filtered_cards_dealer = [card for card in cards if is_card_inside_rect(card, filter_rect_dealer)]
+        # Display the image with detected cards
+        result_image = display(image, cards)
         
-        # Calculate total value of filtered cards
-        total_value_players = calculate_total_value(filtered_cards_players)
-        total_value_dealer = calculate_total_value(filtered_cards_dealer)
-
         if "round" in image_filename.lower():
+            # Filter cards inside the rectangle
+            filtered_cards_players = [card for card in cards if is_card_inside_rect(card, filter_rect_player)]
+            filtered_cards_dealer = [card for card in cards if is_card_inside_rect(card, filter_rect_dealer)]
+            
+            # Calculate total value of filtered cards
+            total_value_players = calculate_total_value(filtered_cards_players)
+            total_value_dealer = calculate_total_value(filtered_cards_dealer)
+
             # Display the rectangle on the image
             cv2.rectangle(image, (filter_rect_player[0], filter_rect_player[1]), (filter_rect_player[2], filter_rect_player[3]), (255, 0, 0), 2)
             cv2.rectangle(image, (filter_rect_dealer[0], filter_rect_dealer[1]), (filter_rect_dealer[2], filter_rect_dealer[3]), (255, 0, 0), 2)
@@ -275,14 +330,52 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
             cv2.putText(image, f"Dealer: {total_value_dealer}", 
                         (filter_rect_dealer[2]-150, filter_rect_dealer[1] - 10), 
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        
-        if "post" in image_filename.lower():
-            if (total_value_dealer == total_value_players) or (total_value_players>21 and total_value_dealer>21):
-                cv2.putText(image, "Draw", (200,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
-            elif ((total_value_players > total_value_dealer)and total_value_players < 22) or (total_value_dealer>21):
-                cv2.putText(image, "Player Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
-            elif ((total_value_dealer > total_value_players)and total_value_dealer < 22) or (total_value_players>21):
-                cv2.putText(image, "Dealer Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+                
+            if "_0pre" in image_filename.lower():
+                dealer_cards_pre = [card.value for card in filtered_cards_dealer]
+                player_cards_pre = [card.value for card in filtered_cards_players]
+
+                for card_value in dealer_cards_pre + player_cards_pre:
+                    if card_value in deck:
+                        deck.remove(card_value)
+
+                bust_player = calculate_bust_probability(player_cards_pre, deck, stop_at=21)  # ผู้เล่นหยุดจั่วที่ 21
+                if sum(player_cards_pre) < 21:
+                    cv2.putText(image, f"player will bust: {bust_player:.2%}", 
+                                (filter_rect_player[2]-150, filter_rect_player[3] - 10), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    
+                print(f"จำนวนไพ่ในสำรับที่เหลือ: {len(deck)} : {deck}") #ยังไม่ลบใบคว่ำ
+
+
+
+            
+            if "_1post" in image_filename.lower():
+                if (total_value_dealer == total_value_players) or (total_value_players>21 and total_value_dealer>21):
+                    cv2.putText(image, "Draw", (200,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+                elif ((total_value_players > total_value_dealer)and total_value_players < 22) or (total_value_dealer>21):
+                    cv2.putText(image, "Player Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+                elif ((total_value_dealer > total_value_players)and total_value_dealer < 22) or (total_value_players>21):
+                    cv2.putText(image, "Dealer Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+
+                dealer_cards_post = [card.value for card in filtered_cards_dealer]
+                # player_cards_post = [card.value for card in filtered_cards_players]
+                
+                open = [i for i in dealer_cards_post if i not in dealer_cards_pre]
+                print(f'open: {open}')
+                for card_value in open:
+                    if card_value in deck:
+                        deck.remove(card_value)
+
+
+                bust_dealer = calculate_bust_probability(dealer_cards_post, deck, stop_at=17)  # ผู้เล่นหยุดจั่วที่ 21
+                if sum(dealer_cards_post) < 17:
+                    cv2.putText(image, f"dealer will bust: {bust_dealer:.2%}", 
+                                (filter_rect_player[2]-150, filter_rect_player[1] - 500), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    
+                print(f"จำนวนไพ่ในสำรับที่เหลือ: {len(deck)} : {deck}") #ยังไม่ลบใบคว่ำ
+
 
             if total_value_players == 21:
                     cv2.putText(image, "Black Jack", (10,900),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
@@ -294,19 +387,18 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
             if total_value_dealer > 21:
                     cv2.putText(image, "Bust", (10,200),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
 
-        # Display the image with detected cards
-        result_image = display(image, cards)
 
-        # Save the result in the output folder
-        output_path = os.path.join(output_folder, image_filename)
-        cv2.imwrite(output_path, result_image)
-        print('*' * 10)
-        print(image_filename)
-        print(f"players: {total_value_players}")
-        print(f"dealer: {total_value_dealer}")
-        print([card.value for card in filtered_cards_players])
-        print([card.value for card in filtered_cards_dealer])
-        print(f"Processed: {image_filename}")
+
+            # Save the result in the output folder
+            output_path = os.path.join(output_folder, image_filename)
+            cv2.imwrite(output_path, result_image)
+
+            print(f"players: {total_value_players}")
+            print(f"dealer: {total_value_dealer}")
+            print([card.value for card in filtered_cards_players])
+            print([card.value for card in filtered_cards_dealer])
+        else:
+            print('-'*5)
 
 
 if __name__ == "__main__":
