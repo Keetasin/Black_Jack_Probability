@@ -26,8 +26,17 @@ def prob_blackjack(deck, dealer_total, player_total):
     for i in range(left_card):
         card = deck[i]
         dealer_new_total = dealer_total + card
+        
+        # Blackjack
+        if dealer_total == 21 or player_total == 21:
+            if dealer_total == 21 and player_total == 21:
+                tie = left_card
+            elif dealer_total == 21:
+                dealer_win = left_card
+            else:
+                player_win = left_card
 
-        if dealer_new_total >= 17 and dealer_new_total <= 21 :
+        elif dealer_new_total >= 17 and dealer_new_total <= 21 :
             if dealer_new_total > player_total:
                 dealer_win += 1
             elif dealer_new_total < player_total:  
