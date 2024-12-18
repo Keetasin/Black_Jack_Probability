@@ -23,7 +23,7 @@ def calculate_total(hand):
         aces -= 1
     return total
 
-def calculate_bust_probability(hand, deck, stop_at=17):
+def calculate_bust_probability(hand, deck, stop_at=int()):
     """
     คำนวณความน่าจะเป็นที่ไพ่ในมือจะ bust
     :param hand: ไพ่ในมือเป็นค่าตัวเลข (list)
