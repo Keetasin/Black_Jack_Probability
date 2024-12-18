@@ -22,38 +22,28 @@ def prob_blackjack(deck, dealer_total, player_total):
     dealer_win = 0
     player_win = 0
     dealer_pick_card = 0
+
     for i in range(left_card):
-        if deck[i] == 11:
-            if dealer_total == 16: # กรณี 10 6 ถ้าได้ A จะเป็น 17 
-                dealer_total = 17
-                if dealer_total > player_total:
-                    dealer_total += 1
-                elif dealer_total < player_total:
-                    player_total += 1
-            elif dealer_total + deck[i] == player_total:# 5 5 11, 5 5 11
-                tie += 1
-            elif dealer_total + deck[i] == 21: # เช่น 5 5 11
+        card = deck[i]
+        dealer_new_total = dealer_total + card
+
+        if dealer_new_total >= 17:
+            if dealer_new_total > player_total:
                 dealer_win += 1
-            elif dealer_total + deck[i] < 17 or dealer_total + deck[i] > 21: # เช่น 2 2 11, 10 6 11 
-                dealer_pick_card += 1
-            elif dealer_total + deck[i] < player_total: # เช่น 3 3 11 ฝั่งผู้เล่นได้ 20
+            elif dealer_new_total < player_total:  
                 player_win += 1
-            else: # 5 5 11 ผู้เล่นได้ 20
-                dealer_win += 1
-
-        elif dealer_total + deck[i] <= 21: 
-            if (dealer_total + deck[i]) == player_total:    
-                tie += 1
-            elif dealer_total + deck[i] > dealer_total:
-                dealer_win += 1
-            elif dealer_total + deck[i] < player_total:
-                player_win += 1    
-        
+            else:
+                tie += 1                
         else:
-            player_win += 1
-    print(tie + dealer_win + player_win + dealer_pick_card, "/", left_card)
-    return print(f" Tie: {tie}/{left_card}\n Dealer win: {dealer_win}/{left_card}\n Player win: {player_win}/{left_card}\n Dealer pick card: {dealer_pick_card}/{left_card}")
+            dealer_pick_card += 1
 
+
+    # แสดงผลลัพธ์
+    print(tie + dealer_win + player_win + dealer_pick_card, "/", left_card)
+    return print(
+        f"Tie: {tie}/{left_card}\nDealer win: {dealer_win}/{left_card}\n"
+        f"Player win: {player_win}/{left_card}\nDealer pick card: {dealer_pick_card}/{left_card}"
+    )
 
 if __name__ == "__main__":
     # รับไพ่เริ่มต้นของเจ้ามือ
@@ -76,8 +66,9 @@ if __name__ == "__main__":
     dealer_total = calculate_total(dealer_cards)
     player_total = calculate_total(player_cards)
 
-    if dealer_total < 17:
-        prob_blackjack(deck, dealer_total, player_total)
+
+    prob_blackjack(deck, dealer_total, player_total)
+
 
     # แสดงจำนวนไพ่ในสำรับที่เหลือ
     print(dealer_total)
