@@ -35,7 +35,7 @@ def prob_blackjack(deck, dealer_total, player_total):
                 dealer_win += 1
             # ในกรณี dealer แต้มไม่ถึง 17 สามารถจั่วไพ่เพิ่มได้เรื่อยๆ
             elif dealer_new_total == 21:
-                dealer_win += 1
+                tie += 1
             else:
                 player_win += 1
 
