@@ -23,10 +23,16 @@ def calculate_total(hand):
         aces -= 1
     return total
 
-def calculate_bust_probability(initial_cards, deck):
-    """คำนวณความน่าจะเป็นที่เจ้ามือจะ bust"""
-    total = calculate_total(initial_cards)
-    if total >= 17:
+def calculate_bust_probability(hand, deck, stop_at=17):
+    """
+    คำนวณความน่าจะเป็นที่ไพ่ในมือจะ bust
+    :param hand: ไพ่ในมือเป็นค่าตัวเลข (list)
+    :param deck: สำรับไพ่ที่เหลืออยู่
+    :param stop_at: แต้มที่หยุดจั่วไพ่ (default: 17)
+    :return: ความน่าจะเป็นที่ bust
+    """
+    total = calculate_total(hand)
+    if total >= stop_at:
         return 0.0  # ไม่จั่วไพ่เพิ่มเติม
 
     bust_count = 0
@@ -49,11 +55,12 @@ if __name__ == "__main__":
     # รับไพ่เริ่มต้นของเจ้ามือ
     input_cards = input("กรุณากรอกไพ่เริ่มต้นของเจ้ามือ (เช่น 'K 5' หรือ 'A 8'): ")
     dealer_cards = input_cards.upper().split()
-    initial_cards = [card_to_value(card) for card in dealer_cards]
 
     # รับไพ่ของผู้เล่น
     player_cards_input = input("กรุณากรอกไพ่ของผู้เล่น (เช่น '10 7' หรือปล่อยว่างถ้าไม่มี): ").strip()
     player_cards = player_cards_input.upper().split() if player_cards_input else []
+    dealer_prob = [card_to_value(card) for card in dealer_cards]
+    player_prob = [card_to_value(card) for card in player_cards]
 
     # สร้างสำรับไพ่
     deck = create_deck()
@@ -66,8 +73,10 @@ if __name__ == "__main__":
     for card in player_cards:
         deck.remove(card)  # ลบทีละใบ
 
-    # คำนวณความน่าจะเป็นที่เจ้ามือจะ bust
-    bust_probability = calculate_bust_probability(initial_cards, deck)
+    # คำนวณความน่าจะเป็นที่เจ้ามือและผู้เล่นจะ bust
+    bust_dealer = calculate_bust_probability(dealer_prob, deck, stop_at=17)
+    bust_player = calculate_bust_probability(player_prob, deck, stop_at=21)  # ผู้เล่นหยุดจั่วที่ 21
 
-    print(f"ความน่าจะเป็นที่เจ้ามือจะ bust (เริ่มจากไพ่ {input_cards}): {bust_probability:.2%}")
+    print(f"ความน่าจะเป็นที่เจ้ามือจะ bust : {bust_dealer:.2%}")
+    print(f"ความน่าจะเป็นที่ผู้เล่นจะ bust : {bust_player:.2%}")
     print(f"จำนวนไพ่ในสำรับที่เหลือ: {len(deck)} : {deck}")
