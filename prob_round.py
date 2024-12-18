@@ -28,7 +28,7 @@ def prob_blackjack(deck, dealer_total, player_total):
         dealer_new_total = dealer_total + card
         
         # Blackjack
-        if player_total == 21:
+        if player_total == 21 or dealer_total == 21 or dealer_new_total == 21:
             if dealer_total == 21 and player_total == 21:
                 tie = left_card
             elif dealer_total == 21:
