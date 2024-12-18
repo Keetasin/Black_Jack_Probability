@@ -32,14 +32,17 @@ def calculate_bust_probability(hand, deck, stop_at=int()):
     :return: ความน่าจะเป็นที่ bust
     """
     total = calculate_total(hand)
+    
+    # ตรวจสอบกรณีที่ไพ่ในมือเริ่มต้น bust
+    if total > 21:
+        return 1.0  # 100% ที่ bust
     if total >= stop_at:
         return 0.0  # ไม่จั่วไพ่เพิ่มเติม
 
+    # คำนวณความน่าจะเป็น bust หากยังไม่ bust และแต้มไม่ถึง stop_at
     bust_count = 0
-    for card in deck:
-        card_value = card_to_value(card)
-        if card == 'A':
-            # พิจารณากรณีที่ A สามารถเป็น 1 หรือ 11
+    for card_value in deck:
+        if card_value == 11:  # ไพ่ Ace (มีค่าได้ทั้ง 11 และ 1)
             new_total_with_11 = total + 11
             new_total_with_1 = total + 1
             if new_total_with_11 > 21 and new_total_with_1 > 21:
@@ -50,6 +53,7 @@ def calculate_bust_probability(hand, deck, stop_at=int()):
                 bust_count += 1
 
     return bust_count / len(deck)
+
 
 if __name__ == "__main__":
     print("เริ่มเกม Blackjack! คุณจะเล่นได้ทั้งหมด 5 รอบ")

@@ -25,12 +25,17 @@ def calculate_bust_probability(hand, deck, stop_at=int()):
     :return: ความน่าจะเป็นที่ bust
     """
     total = calculate_total(hand)
+    
+    # ตรวจสอบกรณีที่ไพ่ในมือเริ่มต้น bust
+    if total > 21:
+        return 1.0  # 100% ที่ bust
     if total >= stop_at:
         return 0.0  # ไม่จั่วไพ่เพิ่มเติม
 
+    # คำนวณความน่าจะเป็น bust หากยังไม่ bust และแต้มไม่ถึง stop_at
     bust_count = 0
     for card_value in deck:
-        if card_value == 11:
+        if card_value == 11:  # ไพ่ Ace (มีค่าได้ทั้ง 11 และ 1)
             new_total_with_11 = total + 11
             new_total_with_1 = total + 1
             if new_total_with_11 > 21 and new_total_with_1 > 21:
@@ -41,6 +46,7 @@ def calculate_bust_probability(hand, deck, stop_at=int()):
                 bust_count += 1
 
     return bust_count / len(deck)
+
 
 if __name__ == "__main__":
     # รับไพ่เริ่มต้นของเจ้ามือ
@@ -63,18 +69,18 @@ if __name__ == "__main__":
     dealer_total = calculate_total(dealer_cards)
     player_total = calculate_total(player_cards)
 
-    # # ตรวจสอบ bust
-    # if dealer_total > 21:
-    #     print("เจ้ามือ bust!")
-    # elif dealer_total == 21:
-    #     print("เจ้ามือ blackjack!")
-    # else:
-    #     bust_dealer = calculate_bust_probability(dealer_cards, deck, stop_at=17)
-    #     print(f"ความน่าจะเป็นที่เจ้ามือจะ bust : {bust_dealer:.2%}")
+    # ตรวจสอบ bust
+    if dealer_total > 21:
+        print("เจ้ามือ bust!")
+    elif dealer_total == 21:
+        print("เจ้ามือ blackjack!")
+    else:
+        bust_dealer = calculate_bust_probability(dealer_cards, deck, stop_at=17)
+        print(f"ความน่าจะเป็นที่เจ้ามือจะ bust : {bust_dealer:.2%}")
 
     if player_total > 21:
         print("ผู้เล่น bust!")
-    elif player_total == 21:
+    if player_total == 21:
         print("ผู้เล่น blackjack!")
     else:
         bust_player = calculate_bust_probability(player_cards, deck, stop_at=21)  # ผู้เล่นหยุดจั่วที่ 21
