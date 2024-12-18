@@ -52,31 +52,64 @@ def calculate_bust_probability(hand, deck, stop_at=int()):
     return bust_count / len(deck)
 
 if __name__ == "__main__":
-    # รับไพ่เริ่มต้นของเจ้ามือ
-    input_cards = input("กรุณากรอกไพ่เริ่มต้นของเจ้ามือ (เช่น 'K 5' หรือ 'A 8'): ")
-    dealer_cards = input_cards.upper().split()
+    print("เริ่มเกม Blackjack! คุณจะเล่นได้ทั้งหมด 5 รอบ")
 
-    # รับไพ่ของผู้เล่น
-    player_cards_input = input("กรุณากรอกไพ่ของผู้เล่น (เช่น '10 7' หรือปล่อยว่างถ้าไม่มี): ").strip()
-    player_cards = player_cards_input.upper().split() if player_cards_input else []
-    dealer_prob = [card_to_value(card) for card in dealer_cards]
-    player_prob = [card_to_value(card) for card in player_cards]
-
-    # สร้างสำรับไพ่
+    # สร้างสำรับไพ่เริ่มต้น
     deck = create_deck()
 
-    # เอาไพ่เริ่มต้นของเจ้ามือออกจากสำรับ
-    for card in dealer_cards:
-        deck.remove(card)  # ลบทีละใบ
+    for round_number in range(1, 6):  # เล่นทั้งหมด 5 รอบ
+        print(f"\n--- รอบที่ {round_number} ---")
+        
+        # รับไพ่เริ่มต้นของเจ้ามือ
+        input_cards = input("กรุณากรอกไพ่เริ่มต้นของเจ้ามือ (เช่น 'K 5' หรือ 'A 8'): ")
+        dealer_cards = input_cards.upper().split()
 
-    # เอาไพ่ของผู้เล่นออกจากสำรับ (ถ้ามี)
-    for card in player_cards:
-        deck.remove(card)  # ลบทีละใบ
+        # รับไพ่ของผู้เล่น
+        player_cards_input = input("กรุณากรอกไพ่ของผู้เล่น (เช่น '10 7' หรือปล่อยว่างถ้าไม่มี): ").strip()
+        player_cards = player_cards_input.upper().split() if player_cards_input else []
 
-    # คำนวณความน่าจะเป็นที่เจ้ามือและผู้เล่นจะ bust
-    bust_dealer = calculate_bust_probability(dealer_prob, deck, stop_at=17)
-    bust_player = calculate_bust_probability(player_prob, deck, stop_at=21)  # ผู้เล่นหยุดจั่วที่ 21
+        # แปลงไพ่เป็นตัวเลขสำหรับการคำนวณ
+        dealer_prob = [card_to_value(card) for card in dealer_cards]
+        player_prob = [card_to_value(card) for card in player_cards]
 
-    print(f"ความน่าจะเป็นที่เจ้ามือจะ bust : {bust_dealer:.2%}")
-    print(f"ความน่าจะเป็นที่ผู้เล่นจะ bust : {bust_player:.2%}")
+        # เอาไพ่เริ่มต้นออกจากสำรับ
+        for card in dealer_cards + player_cards:
+            if card in deck:
+                deck.remove(card)  # ลบไพ่ที่ถูกใช้ไปแล้ว
+
+        # คำนวณแต้มรวม
+        dealer_total = calculate_total(dealer_prob)
+        player_total = calculate_total(player_prob)
+
+        # ตรวจสอบว่า bust หรือ blackjack
+        if 17 <= dealer_total < 21:
+            print("เจ้ามือไม่สามารถ Hit ได้แล้ว")
+        elif dealer_total > 21:
+            print("เจ้ามือ bust!")
+        elif dealer_total == 21:
+            print("เจ้ามือ blackjack!")
+        else:
+            # คำนวณความน่าจะเป็นที่เจ้ามือจะ bust
+            bust_dealer = calculate_bust_probability(dealer_prob, deck, stop_at=17)
+            print(f"ความน่าจะเป็นที่เจ้ามือจะ bust : {bust_dealer:.2%}")
+
+        if player_total > 21:
+            print("ผู้เล่น bust!")
+        elif player_total == 21:
+            print("ผู้เล่น blackjack!")
+        else:
+            # คำนวณความน่าจะเป็นที่ผู้เล่นจะ bust
+            bust_player = calculate_bust_probability(player_prob, deck, stop_at=21)  # ผู้เล่นหยุดจั่วที่ 21
+            print(f"ความน่าจะเป็นที่ผู้เล่นจะ bust : {bust_player:.2%}")
+
+        # จำนวนไพ่ที่เหลือในสำรับ
+        print(f"จำนวนไพ่ในสำรับที่เหลือ: {len(deck)} : {deck}")
+
+        # หากสำรับไพ่เหลือน้อยเกินไป ให้หยุดเกม
+        if len(deck) < 10:
+            print("\nไพ่ในสำรับไม่เพียงพอสำหรับเล่นต่อ เกมสิ้นสุด!")
+            break
+    print("\nเกมจบแล้ว! ขอบคุณที่เล่น Blackjack!")
+
     print(f"จำนวนไพ่ในสำรับที่เหลือ: {len(deck)} : {deck}")
+
