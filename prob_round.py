@@ -27,7 +27,7 @@ def prob_blackjack(deck, dealer_total, player_total):
         card = deck[i]
         dealer_new_total = dealer_total + card
 
-        if dealer_new_total >= 17:
+        if dealer_new_total >= 17 and dealer_new_total <= 21 :
             if dealer_new_total > player_total:
                 dealer_win += 1
             elif dealer_new_total < player_total:  
