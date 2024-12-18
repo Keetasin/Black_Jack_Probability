@@ -28,24 +28,35 @@ def prob_blackjack(deck, dealer_total, player_total):
         dealer_new_total = dealer_total + card
         
         # Blackjack
-        if dealer_total == 21 or player_total == 21:
+        if player_total == 21:
             if dealer_total == 21 and player_total == 21:
                 tie = left_card
             elif dealer_total == 21:
-                dealer_win = left_card
+                dealer_win += 1
+            # ในกรณี dealer แต้มไม่ถึง 17 สามารถจั่วไพ่เพิ่มได้เรื่อยๆ
+            elif dealer_new_total == 21:
+                dealer_win += 1
             else:
-                player_win = left_card
+                player_win += 1
 
-        elif dealer_new_total >= 17 and dealer_new_total <= 21 :
+        # player bust
+        elif player_total > 21:
+            dealer_win += 1
+
+        elif dealer_new_total >= 17 and dealer_new_total <= 21:
             if dealer_new_total > player_total:
                 dealer_win += 1
             elif dealer_new_total < player_total:  
                 player_win += 1
             else:
                 tie += 1                
-        else:
+        
+        elif dealer_new_total < 17:
             dealer_pick_card += 1
-
+        
+        # Dealer bust
+        elif dealer_new_total > 21:
+            player_win += 1
 
     # แสดงผลลัพธ์
     print(tie + dealer_win + player_win + dealer_pick_card, "/", left_card)
