@@ -66,8 +66,8 @@ def prob_blackjack(deck, dealer_total, player_total):
     # แสดงผลลัพธ์
     print(tie + dealer_win + player_win + dealer_pick_card, "/", left_card)
     return print(
-        f"Tie: {tie}/{left_card}\nDealer win: {dealer_win}/{left_card}\n"
-        f"Player win: {player_win}/{left_card}\nDealer pick card: {dealer_pick_card}/{left_card}"
+        f"Tie: {tie/left_card:.2%}\nDealer win: {dealer_win/left_card:.2%}\n"
+        f"Player win: {player_win/left_card:.2%}\nDealer pick card: {dealer_pick_card/left_card:.2%}"
     )
 
 if __name__ == "__main__":
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     dealer_cards = list(map(int, input_cards.split()))  # แปลงแต้มไพ่เป็นตัวเลข
 
     # รับไพ่ของผู้เล่น
-    player_cards_input = input("กรุณากรอกแต้มของผู้เล่น (เช่น '7 11' หรือปล่อยว่างถ้าไม่มี): ").strip()
+    player_cards_input = input("กรุณากรอกแต้มของผู้เล่น (เช่น '7 11' หรือปล่อsยว่างถ้าไม่มี): ").strip()
     player_cards = list(map(int, player_cards_input.split())) if player_cards_input else []
 
     # สร้างสำรับไพ่
