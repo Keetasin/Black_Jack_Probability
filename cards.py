@@ -279,6 +279,56 @@ def calculate_bust_probability(hand, deck, stop_at=int()):
 
     return bust_count / len(deck)
 
+def prob_blackjack(deck, dealer_total, player_total):
+    left_card = len(deck)
+    tie = 0
+    dealer_win = 0
+    player_win = 0
+    dealer_pick_card = 0
+
+    for i in range(left_card):
+        card = deck[i]
+        dealer_new_total = dealer_total + card
+        
+        if card == 11 and dealer_new_total > 21:
+            dealer_new_total = dealer_new_total - 10 
+
+        # Blackjack
+        if player_total == 21 or dealer_total == 21 or dealer_new_total == 21:
+            if dealer_total == 21 and player_total == 21:
+                tie += 1
+            elif dealer_total == 21:
+                dealer_win += 1
+            # ในกรณี dealer แต้มไม่ถึง 17 สามารถจั่วไพ่เพิ่มได้เรื่อยๆ
+            elif dealer_new_total == 21 and player_total == 21:
+                tie += 1
+            elif dealer_new_total == 21:
+                dealer_win += 1    
+            else:
+                player_win += 1
+
+        # player bust
+        elif player_total > 21:
+            dealer_win += 1
+
+        elif 17 <= dealer_new_total <= 21:
+            if dealer_new_total > player_total:
+                dealer_win += 1
+            elif dealer_new_total < player_total:  
+                player_win += 1
+            else:
+                tie += 1                
+        
+        elif dealer_new_total < 17:
+            dealer_pick_card += 1
+        
+        # Dealer bust
+        elif dealer_new_total > 21:
+            player_win += 1
+
+    return tie, dealer_win, player_win, dealer_pick_card
+    
+
 
 def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
     # Ensure output directory exists
@@ -340,12 +390,27 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
                         deck.remove(card_value)
 
                 bust_player = calculate_bust_probability(player_cards_pre, deck, stop_at=21)  # ผู้เล่นหยุดจั่วที่ 21
+                tie, dealer_win, player_win, dealer_pick_card = prob_blackjack(deck, sum(dealer_cards_pre), sum(player_cards_pre))
+                
                 if sum(player_cards_pre) < 21:
                     cv2.putText(image, f"player will bust: {bust_player:.2%}", 
                                 (filter_rect_player[2]-150, filter_rect_player[3] - 10), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
     
-                print(f"จำนวนไพ่ในสำรับที่เหลือ: {len(deck)} : {deck}") #ยังไม่ลบใบคว่ำ
+                left_card = len(deck)
+                print(f"\nจำนวนไพ่ที่เหลือในสำรับ: {left_card}")
+                cv2.putText(image, f"result: {tie + dealer_win + player_win + dealer_pick_card} / {left_card}", 
+                            (10,600), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                cv2.putText(image, f"Tie: {tie/left_card:.2%}", 
+                            (10,650), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                cv2.putText(image, f"Dealer win: {dealer_win/left_card:.2%}", 
+                            (10,700), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                cv2.putText(image, f"Player win: {player_win/left_card:.2%}", 
+                            (10,750), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                cv2.putText(image, f"Dealer pick card: {dealer_pick_card/left_card:.2%}", 
+                            (10,800), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+
 
 
 
