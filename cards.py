@@ -465,6 +465,8 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
             print([card.value for card in filtered_cards_players])
             print([card.value for card in filtered_cards_dealer])
         else:
+            output_path = os.path.join(output_folder, image_filename)
+            cv2.imwrite(output_path, result_image)
             print('-'*5)
 
 
