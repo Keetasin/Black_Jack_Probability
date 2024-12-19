@@ -356,6 +356,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
 
         # Detect cards in the image
         cards = detect(image, rank_path, last_cards)
+        last_cards = cards
 
         # Display the image with detected cards
         result_image = display(image, cards)
