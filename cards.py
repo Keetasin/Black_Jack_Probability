@@ -431,15 +431,15 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
                     
                 left_card = len(deck)
                 print(f"จำนวนไพ่ในสำรับที่เหลือ: {left_card} : {deck}") #ยังไม่ลบใบคว่ำ
-                cv2.putText(image, f"result: {tie + dealer_win + player_win + dealer_pick_card_4} / {left_card}", 
+                cv2.putText(image, f"Possibility: {tie + dealer_win + player_win + dealer_pick_card_4} event", 
                             (1520,500), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                cv2.putText(image, f"Tie: {tie/left_card:.2%}", 
+                cv2.putText(image, f"Game tie: {tie/left_card:.2%}", 
                             (1520,550), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 cv2.putText(image, f"Dealer win: {dealer_win/left_card:.2%}", 
                             (1520,600), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 cv2.putText(image, f"Player win: {player_win/left_card:.2%}", 
                             (1520,650), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                cv2.putText(image, f"Dealer pick card: {dealer_pick_card_4/left_card:.2%}", 
+                cv2.putText(image, f"Dealer 4th card: {dealer_pick_card_4/left_card:.2%}", 
                             (1520,700), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
     
 
