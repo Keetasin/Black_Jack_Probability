@@ -405,12 +405,13 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
                 cv2.putText(image, "Dealere's turn", 
                             (1500,200), cv2.FONT_HERSHEY_SIMPLEX, 2, (100, 155, 250), 4)
                 
-                if (total_value_dealer == total_value_players) or (total_value_players>21 and total_value_dealer>21):
-                    cv2.putText(image, "Draw", (200,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
-                elif ((total_value_players > total_value_dealer)and total_value_players < 22) or (total_value_dealer>21):
-                    cv2.putText(image, "Player Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
-                elif ((total_value_dealer > total_value_players)and total_value_dealer < 22) or (total_value_players>21):
-                    cv2.putText(image, "Dealer Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+                if (total_value_dealer >= 17):
+                    if (total_value_dealer == total_value_players) or (total_value_players>21 and total_value_dealer>21):
+                        cv2.putText(image, "Draw", (200,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+                    elif ((total_value_players > total_value_dealer)and total_value_players < 22) or (total_value_dealer>21):
+                        cv2.putText(image, "Player Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
+                    elif ((total_value_dealer > total_value_players)and total_value_dealer < 22) or (total_value_players>21):
+                        cv2.putText(image, "Dealer Win", (10,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
 
                 dealer_cards_post = [card.value for card in filtered_cards_dealer]
                 # player_cards_post = [card.value for card in filtered_cards_players]
