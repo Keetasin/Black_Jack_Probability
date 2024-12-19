@@ -284,7 +284,7 @@ def prob_blackjack(deck, dealer_total, player_total):
     tie = 0
     dealer_win = 0
     player_win = 0
-    dealer_pick_card = 0
+    dealer_pick_card_4 = 0
 
     for i in range(left_card):
         card = deck[i]
@@ -320,13 +320,13 @@ def prob_blackjack(deck, dealer_total, player_total):
                 tie += 1                
         
         elif dealer_new_total < 17:
-            dealer_pick_card += 1
+            dealer_pick_card_4 += 1
         
         # Dealer bust
         elif dealer_new_total > 21:
             player_win += 1
 
-    return tie, dealer_win, player_win, dealer_pick_card
+    return tie, dealer_win, player_win, dealer_pick_card_4
     
 
 
@@ -422,7 +422,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
 
 
                 bust_dealer = calculate_bust_probability(dealer_cards_post, deck, stop_at=17)  # ผู้เล่นหยุดจั่วที่ 21
-                tie, dealer_win, player_win, dealer_pick_card = prob_blackjack(deck, sum(dealer_cards_post), total_value_players)
+                tie, dealer_win, player_win, dealer_pick_card_4 = prob_blackjack(deck, sum(dealer_cards_post), total_value_players)
 
                 if sum(dealer_cards_post) < 17:
                     cv2.putText(image, f"dealer will bust: {bust_dealer:.2%}", 
@@ -431,7 +431,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
                     
                 left_card = len(deck)
                 print(f"จำนวนไพ่ในสำรับที่เหลือ: {left_card} : {deck}") #ยังไม่ลบใบคว่ำ
-                cv2.putText(image, f"result: {tie + dealer_win + player_win + dealer_pick_card} / {left_card}", 
+                cv2.putText(image, f"result: {tie + dealer_win + player_win + dealer_pick_card_4} / {left_card}", 
                             (1520,500), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 cv2.putText(image, f"Tie: {tie/left_card:.2%}", 
                             (1520,550), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
@@ -439,7 +439,7 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
                             (1520,600), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 cv2.putText(image, f"Player win: {player_win/left_card:.2%}", 
                             (1520,650), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                cv2.putText(image, f"Dealer pick card: {dealer_pick_card/left_card:.2%}", 
+                cv2.putText(image, f"Dealer pick card: {dealer_pick_card_4/left_card:.2%}", 
                             (1520,700), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
     
 
