@@ -382,6 +382,9 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 
             if "_0pre" in image_filename.lower():
+                cv2.putText(image, "Player's turn", 
+                            (1510,1000), cv2.FONT_HERSHEY_SIMPLEX, 2, (100, 155, 250), 4)
+                                
                 dealer_cards_pre = [card.value for card in filtered_cards_dealer]
                 player_cards_pre = [card.value for card in filtered_cards_players]
 
@@ -398,6 +401,9 @@ def process_folder(input_folder, output_folder, rank_path, last_cards=[]):
 
             
             if "_1post" in image_filename.lower():
+                cv2.putText(image, "Dealere's turn", 
+                            (1500,200), cv2.FONT_HERSHEY_SIMPLEX, 2, (100, 155, 250), 4)
+                
                 if (total_value_dealer == total_value_players) or (total_value_players>21 and total_value_dealer>21):
                     cv2.putText(image, "Draw", (200,600),cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 6)
                 elif ((total_value_players > total_value_dealer)and total_value_players < 22) or (total_value_dealer>21):
